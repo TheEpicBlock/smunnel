@@ -19,7 +19,8 @@
 		},
 		"intermediate_mappings": "net.fabricmc:intermediary",
 		"entrypoints": {
-			"init": "nl.theepicblock.smunnel.Smunnel"
+			"init": "nl.theepicblock.smunnel.Smunnel",
+			"client_init": "nl.theepicblock.smunnel.SmunnelClient"
 		},
 		"depends": [
 			{

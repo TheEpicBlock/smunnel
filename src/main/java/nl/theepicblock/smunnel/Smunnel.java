@@ -13,8 +13,6 @@ public class Smunnel implements ModInitializer {
 
 	@Override
 	public void onInitialize(ModContainer mod) {
-		WorldRenderEvents.START.register(ctx -> MainRenderManager.startRender());
-		WorldRenderEvents.END.register(ctx -> MainRenderManager.endRender());
 
 	}
 }

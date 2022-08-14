@@ -1,18 +1,20 @@
 package nl.theepicblock.smunnel.mixin;
 
+import com.mojang.blaze3d.vertex.*;
 import me.jellysquid.mods.sodium.client.gl.device.CommandList;
 import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
 import me.jellysquid.mods.sodium.client.gl.tessellation.GlTessellation;
 import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkCameraContext;
-import me.jellysquid.mods.sodium.client.render.chunk.RegionChunkRenderer;
-import me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer;
+import me.jellysquid.mods.sodium.client.render.chunk.*;
+import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPass;
 import me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkShaderInterface;
 import nl.theepicblock.smunnel.Smunnel;
+import nl.theepicblock.smunnel.SmunnelClient;
 import nl.theepicblock.smunnel.rendering.ChunkShaderDuck;
 import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL11C;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL32;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,6 +49,24 @@ public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 //		var originalShaderProgram = new int[1];
 //		GL20C.glGetIntegerv(GL20C.GL_CURRENT_PROGRAM, originalShaderProgram); // Store the currently used program
 //		Smunnel.LOGGER.info("Currently rendering "+originalShaderProgram[0]);
+	}
+
+	@Inject(method = "render", at = @At("RETURN"))
+	private void endBlockRendering(ChunkRenderMatrices matrices, CommandList commandList, ChunkRenderList list, BlockRenderPass pass, ChunkCameraContext camera, CallbackInfo ci) {
+//		SmunnelClient.PORTAL_SHADER.get().bind();
+//
+//		var tex = MainRenderManager.altBuffer.getColorAttachment();
+//
+//		GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
+//		GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
+//
+//		BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+//		bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+//		bufferBuilder.vertex(-1.0, 0.0, 0.0).next();
+//		bufferBuilder.vertex(2.0, 0.0, 0).next();
+//		bufferBuilder.vertex(2.0, 3, 0).next();
+//		bufferBuilder.vertex(0.0, 3, 0).next();
+//		BufferRenderer.draw(bufferBuilder.end());
 	}
 
 	@Inject(method = "setModelMatrixUniforms", at = @At("HEAD"))
