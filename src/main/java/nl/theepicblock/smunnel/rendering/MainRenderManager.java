@@ -6,6 +6,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
+import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30;
 
 import java.io.File;
@@ -30,12 +31,12 @@ public class MainRenderManager {
 	public static void endRender() {
 		i++;
 		if (i % 15 == 0) {
-			try (var img = ScreenshotRecorder.takeScreenshot(altBuffer)) {
-				var f = new File("/tmp/stream.png");
-				img.writeFile(f);
-			} catch (IOException ignored) {
-
-			}
+//			try (var img = ScreenshotRecorder.takeScreenshot(altBuffer)) {
+//				var f = new File("/tmp/stream.png");
+//				img.writeFile(f);
+//			} catch (IOException ignored) {
+//
+//			}
 		}
 		altBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
 //		altBuffer.delete();
