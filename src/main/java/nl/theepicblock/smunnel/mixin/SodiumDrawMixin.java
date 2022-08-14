@@ -1,9 +1,12 @@
 package nl.theepicblock.smunnel.mixin;
 
 import me.jellysquid.mods.sodium.client.gl.device.CommandList;
+import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
 import me.jellysquid.mods.sodium.client.gl.tessellation.GlTessellation;
+import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
 import me.jellysquid.mods.sodium.client.render.chunk.ChunkCameraContext;
 import me.jellysquid.mods.sodium.client.render.chunk.RegionChunkRenderer;
+import me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer;
 import me.jellysquid.mods.sodium.client.render.chunk.region.RenderRegion;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkShaderInterface;
 import nl.theepicblock.smunnel.Smunnel;
@@ -20,7 +23,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = RegionChunkRenderer.class, remap = false)
-public abstract class SodiumDrawMixin {
+public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
+	public SodiumDrawMixin(RenderDevice device, ChunkVertexType vertexType) {
+		super(device, vertexType);
+	}
+
 	@Shadow
 	protected abstract void executeDrawBatches(CommandList commandList, GlTessellation tessellation);
 
@@ -28,8 +35,13 @@ public abstract class SodiumDrawMixin {
 	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation i) {
 		executeDrawBatches(batch, i);
 
+		ChunkShaderInterface shader = this.activeProgram.getInterface();
+		var duck = (ChunkShaderDuck)shader;
+
+		duck.smunnel$getEnabled().set(1);
 		MainRenderManager.swapToAlt();
 		executeDrawBatches(batch, i);
+		duck.smunnel$getEnabled().set(0);
 		MainRenderManager.swapToOriginal();
 
 //		var originalShaderProgram = new int[1];

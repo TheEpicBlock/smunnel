@@ -18,11 +18,15 @@ public class ChunkShaderExtension implements ChunkShaderDuck {
 	private GlUniformFloat startTunnel;
 	@Unique
 	private GlUniformFloat endTunnel;
+	@Unique
+	private GlUniformInt enabled;
+
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void onInit(ShaderBindingContext context, ChunkShaderOptions options, CallbackInfo ci) {
 		startTunnel = context.bindUniform("tunnelStart", GlUniformFloat::new);
 		endTunnel = context.bindUniform("tunnelEnd", GlUniformFloat::new);
+		enabled = context.bindUniform("enabled", GlUniformInt::new);
 	}
 
 	@Override
@@ -33,5 +37,10 @@ public class ChunkShaderExtension implements ChunkShaderDuck {
 	@Override
 	public GlUniformFloat smunnel$getEndTunnel() {
 		return endTunnel;
+	}
+
+	@Override
+	public GlUniformInt smunnel$getEnabled() {
+		return enabled;
 	}
 }

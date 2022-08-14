@@ -31,12 +31,12 @@ public class MainRenderManager {
 	public static void endRender() {
 		i++;
 		if (i % 15 == 0) {
-//			try (var img = ScreenshotRecorder.takeScreenshot(altBuffer)) {
-//				var f = new File("/tmp/stream.png");
-//				img.writeFile(f);
-//			} catch (IOException ignored) {
-//
-//			}
+			try (var img = ScreenshotRecorder.takeScreenshot(altBuffer)) {
+				var f = new File("/tmp/stream.png");
+				img.writeFile(f);
+			} catch (IOException ignored) {
+
+			}
 		}
 		altBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
 //		altBuffer.delete();
