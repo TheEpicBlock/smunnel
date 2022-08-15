@@ -4,12 +4,15 @@
   "package": "nl.theepicblock.smunnel.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "BufferRendererAccessor",
     "ChunkShaderExtension",
     "ShaderChunkRendererAccessor",
     "SodiumDrawMixin",
     "SodiumOverrideShader"
   ],
   "client": [
+    "RenderBackground",
+    "RenderSky",
     "ResolutionChange",
     "TrackFrameBuffer"
   ],

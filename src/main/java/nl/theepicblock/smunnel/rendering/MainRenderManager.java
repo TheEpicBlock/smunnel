@@ -30,6 +30,7 @@ public class MainRenderManager {
 	static {
 		var w = MinecraftClient.getInstance().getWindow();
 		altBuffer = new SimpleFramebuffer(w.getFramebufferWidth(), w.getFramebufferHeight(), true, MinecraftClient.IS_SYSTEM_MAC);
+		altBuffer.setClearColor(0,0,0,0);
 	}
 
 	public static void endRender(WorldRenderContext ctx) {
@@ -44,6 +45,7 @@ public class MainRenderManager {
 //		}
 
 		// Render portals
+		RenderSystem.disableBlend();
 
 		var shaderProgram = SmunnelClient.PORTAL_SHADER.get();
 		shaderProgram.bind();
@@ -69,6 +71,9 @@ public class MainRenderManager {
 		bufferBuilder.vertex( 2.0 - x,4.0 - y,0.0 - z).next();
 		bufferBuilder.vertex(-1.0 - x,4.0 - y,0.0 - z).next();
 		BufferRenderer.draw(bufferBuilder.end());
+
+//		RenderSystem.disableBlend();
+//		RenderSystem.defaultBlendFunc();
 	}
 
 	public static void swapToAlt() {
