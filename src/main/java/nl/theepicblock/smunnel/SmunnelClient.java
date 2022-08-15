@@ -30,7 +30,7 @@ public class SmunnelClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient(ModContainer mod) {
-		WorldRenderEvents.START.register(ctx -> MainRenderManager.startRender());
+		WorldRenderEvents.START.register(MainRenderManager::startRender);
 		WorldRenderEvents.END.register(MainRenderManager::endRender);
 	}
 

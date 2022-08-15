@@ -14,8 +14,10 @@ public class RenderBackground {
 	private static void redirectClearColor(float f, float g, float h, float i) {
 		RenderSystem.clearColor(f, g, h, i);
 
-		MainRenderManager.swapToAlt();
-		RenderSystem.clearColor(f, g, h, i);
-		MainRenderManager.swapToOriginal();
+		if (MainRenderManager.shouldRenderAlt()) {
+			MainRenderManager.swapToAlt();
+			RenderSystem.clearColor(f, g, h, i);
+			MainRenderManager.swapToOriginal();
+		}
 	}
 }

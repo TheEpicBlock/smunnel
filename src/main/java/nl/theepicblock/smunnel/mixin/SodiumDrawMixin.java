@@ -37,18 +37,16 @@ public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation i) {
 		executeDrawBatches(batch, i);
 
-		ChunkShaderInterface shader = this.activeProgram.getInterface();
-		var duck = (ChunkShaderDuck)shader;
+		if (MainRenderManager.shouldRenderAlt()) {
+			ChunkShaderInterface shader = this.activeProgram.getInterface();
+			var duck = (ChunkShaderDuck)shader;
 
-		duck.smunnel$getEnabled().set(1);
-		MainRenderManager.swapToAlt();
-		executeDrawBatches(batch, i);
-		duck.smunnel$getEnabled().set(0);
-		MainRenderManager.swapToOriginal();
-
-//		var originalShaderProgram = new int[1];
-//		GL20C.glGetIntegerv(GL20C.GL_CURRENT_PROGRAM, originalShaderProgram); // Store the currently used program
-//		Smunnel.LOGGER.info("Currently rendering "+originalShaderProgram[0]);
+			duck.smunnel$getEnabled().set(1);
+			MainRenderManager.swapToAlt();
+			executeDrawBatches(batch, i);
+			duck.smunnel$getEnabled().set(0);
+			MainRenderManager.swapToOriginal();
+		}
 	}
 
 	@Inject(method = "render", at = @At("RETURN"))

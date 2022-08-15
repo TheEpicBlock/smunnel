@@ -7,24 +7,31 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.ScreenshotRecorder;
 import nl.theepicblock.smunnel.SmunnelClient;
+import nl.theepicblock.smunnel.Tunnel;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30;
-
-import java.io.File;
-import java.io.IOException;
 
 public class MainRenderManager {
 	public static Framebuffer altBuffer;
 	private static int currentBuffer; // Stores the currently bound framebuffer
 	private static int originalBuffer; // Temporarily stores a framebuffer whilst it's swapped to altBuffer
 	private static int i = 0;
+	private static boolean shouldRenderAlt = false;
 
-	public static void startRender() {
-		swapToAlt();
-		altBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
-		swapToOriginal();
+	public static void startRender(WorldRenderContext ctx) {
+		var t = getCurrentTunnel();
+		if (t != null) {
+			var c = ctx.camera().getPos();
+			shouldRenderAlt = c.getZ() < t.start() || c.getZ() > t.end();
+		}
+
+		if (shouldRenderAlt()) {
+			swapToAlt();
+			altBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+			swapToOriginal();
+		}
 	}
 
 	static {
@@ -45,35 +52,35 @@ public class MainRenderManager {
 //		}
 
 		// Render portals
-		RenderSystem.disableBlend();
+		if (shouldRenderAlt()) {
+			RenderSystem.disableBlend();
 
-		var shaderProgram = SmunnelClient.PORTAL_SHADER.get();
-		shaderProgram.bind();
-		var interf = shaderProgram.getInterface();
-		interf.projMat().set(RenderSystem.getProjectionMatrix());
-		interf.modelViewMat().set(ctx.matrixStack().peek().getPosition());
-		var w = MinecraftClient.getInstance().getWindow();
-		interf.windowSize().set(w.getFramebufferWidth(), w.getFramebufferHeight());
+			var shaderProgram = SmunnelClient.PORTAL_SHADER.get();
+			shaderProgram.bind();
+			var interf = shaderProgram.getInterface();
+			interf.projMat().set(RenderSystem.getProjectionMatrix());
+			interf.modelViewMat().set(ctx.matrixStack().peek().getPosition());
+			var w = MinecraftClient.getInstance().getWindow();
+			interf.windowSize().set(w.getFramebufferWidth(), w.getFramebufferHeight());
 
-		var tex = MainRenderManager.altBuffer.getColorAttachment();
+			var tex = MainRenderManager.altBuffer.getColorAttachment();
 
-		GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
-		GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
+			GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
+			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
 
-		var x = ctx.camera().getPos().x;
-		var y = ctx.camera().getPos().y;
-		var z = ctx.camera().getPos().z;
+			var x = ctx.camera().getPos().x;
+			var y = ctx.camera().getPos().y;
+			var z = ctx.camera().getPos().z;
 
-		BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
-		bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-		bufferBuilder.vertex(-1.0 - x,1.0 - y,0.0 - z).next();
-		bufferBuilder.vertex( 2.0 - x,1.0 - y,0.0 - z).next();
-		bufferBuilder.vertex( 2.0 - x,4.0 - y,0.0 - z).next();
-		bufferBuilder.vertex(-1.0 - x,4.0 - y,0.0 - z).next();
-		BufferRenderer.draw(bufferBuilder.end());
-
-//		RenderSystem.disableBlend();
-//		RenderSystem.defaultBlendFunc();
+			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+			var t = getCurrentTunnel();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.end() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.end() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.end() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.end() - z).next();
+			BufferRenderer.draw(bufferBuilder.end());
+		}
 	}
 
 	public static void swapToAlt() {
@@ -92,5 +99,18 @@ public class MainRenderManager {
 
 	public static void setCurrentBuffer(int v) {
 		currentBuffer = v;
+	}
+
+	public static boolean shouldRenderAlt() {
+		return shouldRenderAlt;
+	}
+
+	@Nullable
+	public static Tunnel getCurrentTunnel() {
+		return new Tunnel(
+				-8,0,
+				1, 4,
+				-1, 2
+		);
 	}
 }
