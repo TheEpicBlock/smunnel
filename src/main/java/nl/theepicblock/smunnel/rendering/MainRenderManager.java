@@ -11,8 +11,7 @@ import net.minecraft.util.math.Direction;
 import nl.theepicblock.smunnel.SmunnelClient;
 import nl.theepicblock.smunnel.Tunnel;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL20C;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 
 public class MainRenderManager {
 	public static Framebuffer altBuffer;
@@ -77,6 +76,7 @@ public class MainRenderManager {
 			var y = ctx.camera().getPos().y;
 			var z = ctx.camera().getPos().z;
 
+			GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
 			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
 			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
 			var t = getCurrentTunnel();
@@ -93,6 +93,7 @@ public class MainRenderManager {
 			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
 			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
 			BufferRenderer.draw(bufferBuilder.end());
+			GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
 		}
 	}
 
