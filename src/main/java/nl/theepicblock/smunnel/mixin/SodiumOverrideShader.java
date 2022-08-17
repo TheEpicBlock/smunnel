@@ -2,6 +2,7 @@ package nl.theepicblock.smunnel.mixin;
 
 import me.jellysquid.mods.sodium.client.gl.shader.ShaderLoader;
 import net.minecraft.util.Identifier;
+import nl.theepicblock.smunnel.SmunnelClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,12 +29,10 @@ out vec2 v_LightCoord;
 out float v_FragDistance;
 #endif
 
+#SMUNNEL_STUFF_HERE
+
 uniform int u_FogShape;
 uniform vec3 u_RegionOffset;
-
-uniform float tunnelStart;
-uniform float tunnelEnd;
-uniform int enabled;
 
 void main() {
     _vert_init();
@@ -41,20 +40,11 @@ void main() {
     // Transform the chunk-local vertex position into world model space
     vec3 position = u_RegionOffset + _draw_translation + _vert_position;
 
+	smunnelCompressVertex(position);
+
 #ifdef USE_FOG
     v_FragDistance = getFragDistance(u_FogShape, position);
 #endif
-
-	if (enabled == 1) {
-		if (position.z < tunnelStart) {
-			if (position.z > tunnelEnd) {
-				float diff = position.z - tunnelStart;
-				position.z = tunnelStart + (diff / 8);
-			} else {
-				position.z += 7;
-			}
-		}
-	}
 
     // Transform the vertex position into model-view-projection space
     gl_Position = u_ProjectionMatrix * u_ModelViewMatrix * vec4(position, 1.0);
@@ -64,7 +54,7 @@ void main() {
     v_LightCoord = _vert_tex_light_coord;
     v_TexCoord = _vert_tex_diffuse_coord;
 }
-				""");
+				""".replace("#SMUNNEL_STUFF_HERE", SmunnelClient.getShaderSrc("include/space_compression.vsh")));
 		}
 	}
 }

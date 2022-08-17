@@ -34,7 +34,7 @@ public class SmunnelClient implements ClientModInitializer {
 		WorldRenderEvents.END.register(MainRenderManager::endRender);
 	}
 
-	private static String getShaderSrc(String name) {
+	public static String getShaderSrc(String name) {
 		try (var stream = SmunnelClient.class.getResourceAsStream("/assets/smunnel/shaders/"+name)) {
 			if (stream == null) {
 				throw new IllegalStateException("Couldn't find shader src "+name);

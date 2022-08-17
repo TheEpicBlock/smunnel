@@ -1,11 +1,14 @@
 package nl.theepicblock.smunnel.mixin;
 
+import me.jellysquid.mods.sodium.client.gl.GlObject;
+import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.gl.shader.uniform.GlUniformFloat;
 import me.jellysquid.mods.sodium.client.gl.shader.uniform.GlUniformInt;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkShaderInterface;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkShaderOptions;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ShaderBindingContext;
 import nl.theepicblock.smunnel.rendering.ChunkShaderDuck;
+import nl.theepicblock.smunnel.rendering.SpaceCompressionShaderInterface;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -13,34 +16,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ChunkShaderInterface.class)
-public class ChunkShaderExtension implements ChunkShaderDuck {
+public abstract class ChunkShaderExtension implements ChunkShaderDuck {
 	@Unique
-	private GlUniformFloat startTunnel;
-	@Unique
-	private GlUniformFloat endTunnel;
-	@Unique
-	private GlUniformInt enabled;
+	private SpaceCompressionShaderInterface extension;
 
 
 	@Inject(method = "<init>", at = @At("RETURN"))
 	private void onInit(ShaderBindingContext context, ChunkShaderOptions options, CallbackInfo ci) {
-		startTunnel = context.bindUniform("tunnelStart", GlUniformFloat::new);
-		endTunnel = context.bindUniform("tunnelEnd", GlUniformFloat::new);
-		enabled = context.bindUniform("enabled", GlUniformInt::new);
+		extension = new SpaceCompressionShaderInterface(((GlProgram<?>)context).handle());
 	}
 
 	@Override
-	public GlUniformFloat smunnel$getStartTunnel() {
-		return startTunnel;
-	}
-
-	@Override
-	public GlUniformFloat smunnel$getEndTunnel() {
-		return endTunnel;
-	}
-
-	@Override
-	public GlUniformInt smunnel$getEnabled() {
-		return enabled;
+	public SpaceCompressionShaderInterface smunnel$getExtension() {
+		return extension;
 	}
 }

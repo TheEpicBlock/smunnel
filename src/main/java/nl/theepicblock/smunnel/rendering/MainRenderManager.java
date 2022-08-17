@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.math.Direction;
 import nl.theepicblock.smunnel.SmunnelClient;
 import nl.theepicblock.smunnel.Tunnel;
 import org.jetbrains.annotations.Nullable;
@@ -19,12 +20,16 @@ public class MainRenderManager {
 	private static int originalBuffer; // Temporarily stores a framebuffer whilst it's swapped to altBuffer
 	private static int i = 0;
 	private static boolean shouldRenderAlt = false;
+	private static boolean shouldRenderInMain = false;
+	private static SpaceCompressionShaderInterface.SpaceCompressionData shaderData = new SpaceCompressionShaderInterface.SpaceCompressionData(0, 0, 0);
 
 	public static void startRender(WorldRenderContext ctx) {
 		var t = getCurrentTunnel();
 		if (t != null) {
-			var c = ctx.camera().getPos();
-			shouldRenderAlt = c.getZ() < t.start() || c.getZ() > t.end();
+			var c = ctx.camera().getPos().getComponentAlongAxis(t.axis());
+			shouldRenderAlt = c < t.getMin() || c > t.getMax();
+			shouldRenderInMain = t.isInTunnel(ctx.camera().getPos());
+			shaderData = SpaceCompressionShaderInterface.getBasedOnTunnel(t, ctx.camera().getPos());
 		}
 
 		if (shouldRenderAlt()) {
@@ -75,10 +80,18 @@ public class MainRenderManager {
 			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
 			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
 			var t = getCurrentTunnel();
-			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.end() - z).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.end() - z).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.end() - z).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.end() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z - 0.05f).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z - 0.05f).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z - 0.05f).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z - 0.05f).next();
+			BufferRenderer.draw(bufferBuilder.end());
+
+			bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z + 0.05f).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z + 0.05f).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
 			BufferRenderer.draw(bufferBuilder.end());
 		}
 	}
@@ -105,12 +118,22 @@ public class MainRenderManager {
 		return shouldRenderAlt;
 	}
 
+	public static boolean shouldRenderInMain() {
+		return shouldRenderInMain;
+	}
+
+	public static SpaceCompressionShaderInterface.SpaceCompressionData getShaderData() {
+		return shaderData;
+	}
+
 	@Nullable
 	public static Tunnel getCurrentTunnel() {
 		return new Tunnel(
 				-8,0,
 				1, 4,
-				-1, 2
+				-1, 2,
+				Direction.Axis.Z,
+				1
 		);
 	}
 }
