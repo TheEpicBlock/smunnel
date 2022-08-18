@@ -80,18 +80,18 @@ public class MainRenderManager {
 			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
 			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
 			var t = getCurrentTunnel();
-			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z - 0.05f).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z - 0.05f).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z - 0.05f).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z - 0.05f).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z).next();
 			BufferRenderer.draw(bufferBuilder.end());
 
 			bufferBuilder = Tessellator.getInstance().getBufferBuilder();
 			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z + 0.05f).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z + 0.05f).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z + 0.05f).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z).next();
 			BufferRenderer.draw(bufferBuilder.end());
 			GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
 		}
@@ -134,7 +134,7 @@ public class MainRenderManager {
 				1, 4,
 				-1, 2,
 				Direction.Axis.Z,
-				1
+				16
 		);
 	}
 }
