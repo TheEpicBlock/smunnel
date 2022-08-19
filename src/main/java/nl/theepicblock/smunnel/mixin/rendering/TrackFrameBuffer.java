@@ -1,4 +1,4 @@
-package nl.theepicblock.smunnel.mixin;
+package nl.theepicblock.smunnel.mixin.rendering;
 
 import com.mojang.blaze3d.framebuffer.Framebuffer;
 import com.mojang.blaze3d.platform.GlStateManager;

@@ -1,4 +1,4 @@
-package nl.theepicblock.smunnel.mixin;
+package nl.theepicblock.smunnel.mixin.rendering;
 
 import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer;

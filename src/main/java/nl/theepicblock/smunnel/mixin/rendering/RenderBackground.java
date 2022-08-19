@@ -1,4 +1,4 @@
-package nl.theepicblock.smunnel.mixin;
+package nl.theepicblock.smunnel.mixin.rendering;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.Tessellator;

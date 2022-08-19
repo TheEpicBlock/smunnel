@@ -1,4 +1,4 @@
-package nl.theepicblock.smunnel.mixin;
+package nl.theepicblock.smunnel.mixin.rendering;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferRenderer;

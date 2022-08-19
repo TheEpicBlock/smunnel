@@ -134,7 +134,7 @@ public class MainRenderManager {
 				1, 4,
 				-1, 2,
 				Direction.Axis.Z,
-				16
+				1f
 		);
 	}
 }
