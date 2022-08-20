@@ -4,6 +4,7 @@
   "package": "nl.theepicblock.smunnel.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "FixMovedTooFast",
     "FixRaycast",
     "MovementImpl",
     "rendering.BufferRendererAccessor",

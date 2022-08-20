@@ -130,7 +130,7 @@ public class MainRenderManager {
 	@Nullable
 	public static Tunnel getCurrentTunnel() {
 		return new Tunnel(
-				-8,0,
+				-80,0,
 				1, 4,
 				-1, 2,
 				Direction.Axis.Z,
