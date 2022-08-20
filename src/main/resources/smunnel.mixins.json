@@ -11,7 +11,9 @@
     "rendering.ChunkShaderExtension",
     "rendering.ShaderChunkRendererAccessor",
     "rendering.SodiumDrawMixin",
-    "rendering.SodiumOverrideShader"
+    "rendering.SodiumOverrideShader",
+    "rendering.iris.ChunkShaderExtension",
+    "rendering.iris.PatchShaders"
   ],
   "client": [
     "rendering.RenderBackground",

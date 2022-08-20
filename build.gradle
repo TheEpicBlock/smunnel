@@ -28,6 +28,7 @@ dependencies {
 	modImplementation libs.quilt.loader
 
 	modImplementation libs.bundles.sodium
+	modImplementation libs.bundles.iris
 
 	// QSL is not a complete API; You will need Quilted Fabric API to fill in the gaps.
 	// Quilted Fabric API will automatically pull in the correct QSL version.

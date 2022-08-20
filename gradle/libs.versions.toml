@@ -8,6 +8,8 @@ quilted_fabric_api = "4.0.0-beta.7+0.59.0-1.19.2"
 
 sodium = "mc1.19-0.4.2"
 joml = "1.10.4"
+iris = "1.19.x-v1.2.6"
+jcpp = "1.4.14"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -20,10 +22,14 @@ quilted_fabric_api_deprecated = { module = "org.quiltmc.quilted-fabric-api:quilt
 sodium = { module = "maven.modrinth:sodium", version.ref = "sodium" }
 joml = { module = "org.joml:joml", version.ref = "joml" }
 
+iris = { module = "maven.modrinth:iris", version.ref = "iris" }
+jcpp = { module = "org.anarres:jcpp", version.ref = "jcpp" }
+
 # If you have multiple similar dependencies, you can declare a dependency bundle and reference it on the build script with "libs.bundles.example".
 [bundles]
 quilted_fabric_api = ["quilted_fabric_api", "quilted_fabric_api_deprecated"]
 sodium = ["sodium", "joml"]
+iris = ["iris", "jcpp"]
 
 [plugins]
 quilt_loom = { id = "org.quiltmc.loom", version = "0.12.+" }

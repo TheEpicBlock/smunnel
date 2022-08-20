@@ -2,7 +2,11 @@ uniform float tunnelStart; // Lowest coordinate of the tunnel
 uniform int tunnelData; // Length, axis, and data about the position relative to the camera
 uniform float tunnelMultiplicationFactor;
 
+#ifdef SMUNNEL_IRIS_COMPAT
+vec4 smunnelCompressVertex(vec4 pos) {
+#else
 void smunnelCompressVertex(inout vec3 pos) {
+#endif
     int tunnelLength = (tunnelData & 0x0fffffff) - (134217727); // 0b00001111 11111111 11111111 11111111
     float tunnelEnd = tunnelStart + tunnelLength;
     // 01: x
@@ -73,4 +77,8 @@ void smunnelCompressVertex(inout vec3 pos) {
             pos.z = coordinate;
             break;
     }
+
+#ifdef SMUNNEL_IRIS_COMPAT
+    return pos;
+#endif
 }
