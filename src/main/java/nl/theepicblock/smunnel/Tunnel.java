@@ -1,5 +1,6 @@
 package nl.theepicblock.smunnel;
 
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
@@ -115,5 +116,29 @@ public record Tunnel(
 		} else {
 			return ray;
 		}
+	}
+
+	public static Tunnel fromPacket(PacketByteBuf buf) {
+		return new Tunnel(
+				buf.readVarInt(),
+				buf.readVarInt(),
+				buf.readVarInt(),
+				buf.readVarInt(),
+				buf.readVarInt(),
+				buf.readVarInt(),
+				buf.readEnumConstant(Direction.Axis.class),
+				buf.readFloat()
+		);
+	}
+
+	public void writePacket(PacketByteBuf buf) {
+		buf.writeVarInt(this.zMin());
+		buf.writeVarInt(this.zMax());
+		buf.writeVarInt(this.yMin());
+		buf.writeVarInt(this.yMax());
+		buf.writeVarInt(this.xMin());
+		buf.writeVarInt(this.xMax());
+		buf.writeEnumConstant(this.axis());
+		buf.writeFloat(this.targetLength());
 	}
 }

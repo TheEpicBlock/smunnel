@@ -31,7 +31,7 @@ public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/RegionChunkRenderer;executeDrawBatches(Lme/jellysquid/mods/sodium/client/gl/device/CommandList;Lme/jellysquid/mods/sodium/client/gl/tessellation/GlTessellation;)V"))
 	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation i) {
-		var program = (this instanceof ShaderChunkRendererExt e) ? e.iris$getOverride() : this.activeProgram;
+		var program = (this.activeProgram == null && this instanceof ShaderChunkRendererExt e) ? e.iris$getOverride() : this.activeProgram;
 		var shader = (ChunkShaderDuck)program.getInterface();
 
 		var enableMain = MainRenderManager.shouldRenderInMain();

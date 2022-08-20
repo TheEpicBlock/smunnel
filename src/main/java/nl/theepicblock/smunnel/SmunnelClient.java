@@ -12,26 +12,22 @@ import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.apache.commons.io.IOUtils;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.client.ClientModInitializer;
+import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 public class SmunnelClient implements ClientModInitializer {
-	public static final Supplier<GlProgram<PortalShaderInterface>> PORTAL_SHADER = Suppliers.memoize(() -> new GlProgram.Builder(new Identifier("smunnel", "portal"))
-			.attachShader(new GlShader(ShaderType.VERTEX,   new Identifier("smunnel", "portal_vert"), getShaderSrc("portal.vsh")))
-			.attachShader(new GlShader(ShaderType.FRAGMENT, new Identifier("smunnel", "portal_frag"), getShaderSrc("portal.fsh")))
-			.link(ctx -> new PortalShaderInterface(
-					ctx.bindUniform("ModelViewMat", GlUniformMcMatrix4f::new),
-					ctx.bindUniform("ProjMat", GlUniformMcMatrix4f::new),
-					ctx.bindUniform("WindowSize", GlUniform2i::new)
-				)
-			));
-
 	@Override
 	public void onInitializeClient(ModContainer mod) {
 		WorldRenderEvents.START.register(MainRenderManager::startRender);
 		WorldRenderEvents.END.register(MainRenderManager::endRender);
+
+		// Networking
+		ClientPlayNetworking.registerGlobalReceiver(Smunnel.SYNC_PACKET, (client, handler, buf, responseSender) -> {
+			((WorldDuck)client.world).smunnel$getTunnels().importFromPacket(buf);
+		});
 	}
 
 	public static String getShaderSrc(String name) {
@@ -45,5 +41,4 @@ public class SmunnelClient implements ClientModInitializer {
 		}
 	}
 
-	public record PortalShaderInterface(GlUniformMcMatrix4f modelViewMat, GlUniformMcMatrix4f projMat, GlUniform2i windowSize) {}
 }
