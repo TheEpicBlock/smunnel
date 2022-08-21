@@ -26,7 +26,7 @@ public class FixMovedTooFast {
 	@Shadow
 	private double lastTickY;
 
-	@ModifyVariable(method = "onPlayerMove", index = 27, at = @At(value = "LOAD"))
+	@ModifyVariable(method = "onPlayerMove", index = 27, at = @At(value = "LOAD", ordinal = 0))
 	double redirectVelocity(double original, PlayerMoveC2SPacket packet) {
 		var playerPos = this.player.getPos();
 		var moveX = packet.getX(playerPos.x) - this.lastTickX;
