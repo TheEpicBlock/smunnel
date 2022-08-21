@@ -1,9 +1,12 @@
 package nl.theepicblock.smunnel.rendering;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.util.math.Vec3d;
 import nl.theepicblock.smunnel.Tunnel;
 import org.lwjgl.opengl.GL20C;
 
+@Environment(EnvType.CLIENT)
 public class SpaceCompressionShaderInterface {
 	private final int tunnelStartIndex;
 	private final int tunnelDataIndex;

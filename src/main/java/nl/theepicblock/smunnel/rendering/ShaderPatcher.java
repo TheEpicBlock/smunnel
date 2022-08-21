@@ -1,5 +1,7 @@
 package nl.theepicblock.smunnel.rendering;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.SharedConstants;
 import nl.theepicblock.smunnel.Smunnel;
 import nl.theepicblock.smunnel.SmunnelClient;
@@ -9,6 +11,7 @@ import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
+@Environment(EnvType.CLIENT)
 public class ShaderPatcher {
 	private static final Pattern SODIUM_POSITION_TRANSFORM = Pattern.compile(Pattern.quote("vec3 position = u_RegionOffset + _draw_translation + _vert_position;\n"));
 	private static final Pattern IRIS_POSITION_DEFINE = Pattern.compile("^(#define gl_Vertex )(.+)$", Pattern.MULTILINE);

@@ -9,6 +9,8 @@ import com.mojang.blaze3d.vertex.*;
 import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.gl.shader.GlShader;
 import me.jellysquid.mods.sodium.client.gl.shader.ShaderType;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
@@ -23,6 +25,7 @@ import java.util.function.Supplier;
 
 import static nl.theepicblock.smunnel.SmunnelClient.getShaderSrc;
 
+@Environment(EnvType.CLIENT)
 public class MainRenderManager {
 	public static Framebuffer altBuffer;
 	public static final Supplier<GlProgram<PortalShaderInterface>> PORTAL_SHADER = Suppliers.memoize(() -> new GlProgram.Builder(new Identifier("smunnel", "portal"))

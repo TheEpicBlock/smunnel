@@ -1,9 +1,12 @@
 package nl.theepicblock.smunnel.rendering;
 
 import me.jellysquid.mods.sodium.client.gl.shader.uniform.GlUniform;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.joml.Vector2i;
 import org.lwjgl.opengl.GL20C;
 
+@Environment(EnvType.CLIENT)
 public class GlUniform2i extends GlUniform<Vector2i> {
 	public GlUniform2i(int index) {
 		super(index);
