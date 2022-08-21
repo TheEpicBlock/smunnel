@@ -119,7 +119,7 @@ public class MainRenderManager {
 		shaderProgram.bind();
 		var shaderInterface = shaderProgram.getInterface();
 		shaderInterface.projMat().set(RenderSystem.getProjectionMatrix());
-		shaderInterface.modelViewMat().set(ctx.matrixStack().peek().getPosition());
+		shaderInterface.modelViewMat().set(ctx.matrixStack().peek().getModel());
 		shaderInterface.windowSize().set(w.getFramebufferWidth(), w.getFramebufferHeight());
 
 		for (var i = 0; i < activeTunnels.size(); i++) {

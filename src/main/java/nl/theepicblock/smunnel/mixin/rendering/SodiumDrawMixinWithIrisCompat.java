@@ -7,6 +7,8 @@ import me.jellysquid.mods.sodium.client.gl.tessellation.GlTessellation;
 import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
 import me.jellysquid.mods.sodium.client.render.chunk.RegionChunkRenderer;
 import me.jellysquid.mods.sodium.client.render.chunk.ShaderChunkRenderer;
+import net.coderbot.iris.compat.sodium.impl.shader_overrides.ShaderChunkRendererExt;
+import net.coderbot.iris.shadows.ShadowRenderingState;
 import nl.theepicblock.smunnel.rendering.ChunkShaderDuck;
 import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,9 +16,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import static nl.theepicblock.smunnel.Smunnel.IRIS;
+
 @Mixin(value = RegionChunkRenderer.class, remap = false)
-public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
-	public SodiumDrawMixin(RenderDevice device, ChunkVertexType vertexType) {
+public abstract class SodiumDrawMixinWithIrisCompat extends ShaderChunkRenderer {
+	public SodiumDrawMixinWithIrisCompat(RenderDevice device, ChunkVertexType vertexType) {
 		super(device, vertexType);
 	}
 
@@ -27,14 +31,23 @@ public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation tessellation) {
 		GlProgram<?> program = this.activeProgram;
 
+		// iris compat
+		if (program == null &&
+				this instanceof ShaderChunkRendererExt e) {
+			program = e.iris$getOverride();
+		}
+
 		var shader = ((ChunkShaderDuck)program.getInterface()).smunnel$getExtension();
 
 		MainRenderManager.executeMainWithShader(shader, () -> {
 			executeDrawBatches(batch, tessellation);
 		});
 
-		MainRenderManager.executeAltsWithShader(shader, () -> {
-			executeDrawBatches(batch, tessellation);
-		});
+		// We shouldn't be double-rendering shadows
+		if (!ShadowRenderingState.areShadowsCurrentlyBeingRendered()) {
+			MainRenderManager.executeAltsWithShader(shader, () -> {
+				executeDrawBatches(batch, tessellation);
+			});
+		}
 	}
 }

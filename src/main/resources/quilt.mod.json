@@ -34,6 +34,11 @@
 			{
 				"id": "minecraft",
 				"versions": ">=1.19.2"
+			},
+			{
+				"id": "sodium",
+				"reason": "Needed to function on the client",
+				"optional": true
 			}
 		]
 	},

@@ -6,7 +6,6 @@ import net.minecraft.util.math.Vec3d;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.joml.Math.clamp;
 
 public record Tunnel(
 		int zMin,
@@ -70,7 +69,7 @@ public record Tunnel(
 			var tunnelLength = tunnelEnd - tunnelStart;
 			var multiplicationFactor = Math.abs((float)(this.getMax()-this.getMin()) / targetLength());
 			partInTunnel *= multiplicationFactor;
-			var clampedPartInTunnel = clamp(-tunnelLength, tunnelLength, partInTunnel);
+			var clampedPartInTunnel = clamp(partInTunnel, -tunnelLength, tunnelLength);
 			var diff = (partInTunnel - clampedPartInTunnel) / multiplicationFactor;
 
 			return ray.withAxis(this.axis(), partOutTunnel + clampedPartInTunnel + diff);
@@ -102,11 +101,11 @@ public record Tunnel(
 				}
 			} else if (tunnelStart > 0) {
 				preTunnel = min(coordinate, tunnelStart);
-				inTunnel = clamp(0, tunnelLength, coordinate - tunnelStart);
+				inTunnel = clamp(coordinate - tunnelStart, 0, tunnelLength);
 				postTunnel = max(0, coordinate - tunnelEnd);
 			} else {
 				preTunnel = max(coordinate, tunnelEnd);
-				inTunnel = clamp(-tunnelLength, 0, coordinate - tunnelEnd);
+				inTunnel = clamp(coordinate - tunnelEnd, -tunnelLength, 0);
 				postTunnel = min(0, coordinate - tunnelStart);
 			}
 
@@ -140,5 +139,9 @@ public record Tunnel(
 		buf.writeVarInt(this.xMax());
 		buf.writeEnumConstant(this.axis());
 		buf.writeFloat(this.targetLength());
+	}
+
+	public static double clamp(double val, double a, double b) {
+		return max(a,min(b,val));
 	}
 }
