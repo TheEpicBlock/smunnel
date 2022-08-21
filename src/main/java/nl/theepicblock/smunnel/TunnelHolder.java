@@ -5,7 +5,6 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.PersistentState;
@@ -75,7 +74,8 @@ public class TunnelHolder extends PersistentState {
 		buf.writeCollection(this.tunnels, (buf1, tunnel) -> tunnel.writePacket(buf1));
 	}
 
-	public void syncAll(ServerWorld world) {
+	public void syncAndMarkDirty(ServerWorld world) {
+		this.setDirty(true);
 		var buf = PacketByteBufs.create();
 		this.writeToBuf(buf);
 		ServerPlayNetworking.send(world.getPlayers(), Smunnel.SYNC_PACKET, buf);

@@ -59,8 +59,8 @@ public class SpaceCompressionShaderInterface {
 		}
 
 		int axis = switch (t.axis()) {
-			case X -> 0b10;
-			case Y -> 0b01;
+			case X -> 0b01;
+			case Y -> 0b10;
 			case Z -> 0b11;
 		};
 

@@ -4,19 +4,13 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.command.CommandException;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
-import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.command.api.CommandRegistrationCallback;
-import org.quiltmc.qsl.command.api.QuiltCommandRegistrationEnvironment;
-import org.quiltmc.qsl.lifecycle.api.event.ServerLifecycleEvents;
-import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
-import org.quiltmc.qsl.resource.loader.api.client.ClientResourceLoaderEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +66,7 @@ public class Smunnel implements ModInitializer {
 										Direction.Axis.fromName(StringArgumentType.getString(ctx, "direction")),
 										FloatArgumentType.getFloat(ctx, "targetLength")
 								));
-								holder.syncAll(ctx.getSource().getWorld());
+								holder.syncAndMarkDirty(ctx.getSource().getWorld());
 								return Command.SINGLE_SUCCESS;
 							}))))))))))
 					.then(literal("remove")
@@ -80,7 +74,7 @@ public class Smunnel implements ModInitializer {
 							.executes(ctx -> {
 								var holder = TunnelHolder.getFromPersistentState(ctx.getSource().getWorld());
 								holder.tunnels.remove(IntegerArgumentType.getInteger(ctx, "index"));
-								holder.syncAll(ctx.getSource().getWorld());
+								holder.syncAndMarkDirty(ctx.getSource().getWorld());
 								return Command.SINGLE_SUCCESS;
 							}))));
 		});

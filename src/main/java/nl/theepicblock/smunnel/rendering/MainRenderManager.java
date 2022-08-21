@@ -47,10 +47,11 @@ public class MainRenderManager {
 
 	public static void startRender(WorldRenderContext ctx) {
 		var t = getCurrentTunnel();
-		if (t != null) {
-			var c = ctx.camera().getPos().getComponentAlongAxis(t.axis());
+		if (t != null && MinecraftClient.getInstance().getCameraEntity() != null) {
+			var pos = MinecraftClient.getInstance().getCameraEntity().getPos();
+			var c = pos.getComponentAlongAxis(t.axis());
 			shouldRenderAlt = c < t.getMin() || c > t.getMax();
-			shouldRenderInMain = t.isInTunnel(ctx.camera().getPos());
+			shouldRenderInMain = t.isInTunnel(pos);
 			shaderData = SpaceCompressionShaderInterface.getBasedOnTunnel(t, ctx.camera().getPos());
 		} else {
 			shouldRenderAlt = false;
