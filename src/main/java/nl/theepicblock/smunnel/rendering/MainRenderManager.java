@@ -49,6 +49,9 @@ public class MainRenderManager {
 			shouldRenderAlt = c < t.getMin() || c > t.getMax();
 			shouldRenderInMain = t.isInTunnel(ctx.camera().getPos());
 			shaderData = SpaceCompressionShaderInterface.getBasedOnTunnel(t, ctx.camera().getPos());
+		} else {
+			shouldRenderAlt = false;
+			shouldRenderInMain = false;
 		}
 
 		if (shouldRenderAlt()) {

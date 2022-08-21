@@ -7,22 +7,30 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.PersistentState;
 import org.jetbrains.annotations.NotNull;
-import org.quiltmc.qsl.lifecycle.api.client.event.ClientLifecycleEvents;
 import org.quiltmc.qsl.networking.api.PacketByteBufs;
 import org.quiltmc.qsl.networking.api.ServerPlayNetworking;
-import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TunnelHolder extends PersistentState {
-	public ArrayList<Tunnel> tunnels = new ArrayList<>();
-	private static Identifier SYNC_PACKET = new Identifier("smunnel", "sync_tunnels");
+	public List<Tunnel> tunnels;
+
+	public TunnelHolder(boolean concurrent) {
+		if (concurrent) {
+			tunnels = new CopyOnWriteArrayList<>();
+		} else {
+			tunnels = new ArrayList<>();
+		}
+	}
 
 	public static TunnelHolder fromNbt(NbtCompound nbt) {
 		var list = nbt.getList("list", NbtElement.COMPOUND_TYPE);
-		var holder = new TunnelHolder();
+		var holder = new TunnelHolder(false);
 		for (var element : list) {
 			var compound = (NbtCompound)element;
 			holder.tunnels.add(new Tunnel(
@@ -70,12 +78,25 @@ public class TunnelHolder extends PersistentState {
 	public void syncAll(ServerWorld world) {
 		var buf = PacketByteBufs.create();
 		this.writeToBuf(buf);
-		var packet = ServerPlayNetworking.createS2CPacket(Smunnel.SYNC_PACKET, buf);
-		world.getPlayers().forEach(player -> player.networkHandler.sendPacket(packet));
+		ServerPlayNetworking.send(world.getPlayers(), Smunnel.SYNC_PACKET, buf);
+	}
+
+	public Vec3d rayToWorldSpace(Vec3d source, Vec3d ray) {
+		for (var tunnel : tunnels) {
+			ray = tunnel.rayToWorldSpace(source, ray);
+		}
+		return ray;
+	}
+
+	public Vec3d rayToIllusionSpace(Vec3d source, Vec3d ray) {
+		for (var tunnel : tunnels) {
+			ray = tunnel.rayToIllusionSpace(source, ray);
+		}
+		return ray;
 	}
 
 	@NotNull
 	public static TunnelHolder getFromPersistentState(ServerWorld world) {
-		return world.getPersistentStateManager().getOrCreate(TunnelHolder::fromNbt, TunnelHolder::new, "smunnels");
+		return world.getPersistentStateManager().getOrCreate(TunnelHolder::fromNbt, () -> new TunnelHolder(false), "smunnels");
 	}
 }

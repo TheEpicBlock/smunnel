@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(ClientWorld.class)
 public class ClientWorldTunnelImpl implements WorldDuck {
-	@Unique TunnelHolder tunnelHolder = new TunnelHolder();
+	@Unique TunnelHolder tunnelHolder = new TunnelHolder(true);
 
 	@Override
 	public @NotNull TunnelHolder smunnel$getTunnels() {

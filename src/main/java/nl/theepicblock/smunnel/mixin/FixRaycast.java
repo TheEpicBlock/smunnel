@@ -5,6 +5,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
+import nl.theepicblock.smunnel.WorldDuck;
 import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -37,17 +38,14 @@ public abstract class FixRaycast {
 		Vec3d source = this.getCameraPosVec(tickDelta);
 		Vec3d rotation = this.getRotationVec(tickDelta);
 
-		var tunnel = MainRenderManager.getCurrentTunnel();
-		if (tunnel == null) {
-			return this.world.raycast(new RaycastContext(source, source.add(rotation.multiply(maxDistance)), RaycastContext.ShapeType.OUTLINE, includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE,  ((Entity)(Object)this)));
-		}
+		var tunnels = WorldDuck.get((Entity)(Object)this);
 
 		// I don't have the time to do this all mathy and properly, so I will just split the ray in 100 parts
 		var part = maxDistance / 100;
 		int i = 0;
 		while(true) {
-			var vec1 = tunnel.rayToWorldSpace(source, rotation.multiply(part*i));
-			var vec2 = tunnel.rayToWorldSpace(source, rotation.multiply(part*(i+1)));
+			var vec1 = tunnels.rayToWorldSpace(source, rotation.multiply(part*i));
+			var vec2 = tunnels.rayToWorldSpace(source, rotation.multiply(part*(i+1)));
 			var raycast = this.world.raycast(new RaycastContext(source.add(vec1), source.add(vec2), RaycastContext.ShapeType.OUTLINE, includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE,  ((Entity)(Object)this)));;
 			if (raycast.getType() != HitResult.Type.MISS || i == 99) return raycast;
 			i++;
