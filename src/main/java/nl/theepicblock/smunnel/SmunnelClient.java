@@ -26,11 +26,14 @@ public class SmunnelClient implements ClientModInitializer {
 
 		// Networking
 		ClientPlayNetworking.registerGlobalReceiver(Smunnel.SYNC_PACKET, (client, handler, buf, responseSender) -> {
-			if (client.world == null) {
-				Smunnel.LOGGER.warn("Received portal info packet but the world is null");
-				return;
-			}
-			((WorldDuck)client.world).smunnel$getTunnels().importFromPacket(buf);
+			var packet = TunnelHolder.readPacket(buf);
+			client.execute(() -> {
+				if (client.world == null) {
+					Smunnel.LOGGER.error("Received portal info packet but the world is null");
+					return;
+				}
+				((WorldDuck)client.world).smunnel$getTunnels().importFromPacket(packet);
+			});
 		});
 	}
 

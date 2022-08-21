@@ -27,6 +27,8 @@ public class TunnelHolder extends PersistentState {
 		}
 	}
 
+	// Serialization code
+
 	public static TunnelHolder fromNbt(NbtCompound nbt) {
 		var list = nbt.getList("list", NbtElement.COMPOUND_TYPE);
 		var holder = new TunnelHolder(false);
@@ -65,14 +67,20 @@ public class TunnelHolder extends PersistentState {
 		return nbt;
 	}
 
-	public void importFromPacket(PacketByteBuf buf) {
+	public static List<Tunnel> readPacket(PacketByteBuf buf) {
+		return buf.readList(Tunnel::fromPacket);
+	}
+
+	public void importFromPacket(List<Tunnel> packet) {
 		this.tunnels.clear();
-		this.tunnels.addAll(buf.readList(Tunnel::fromPacket));
+		this.tunnels.addAll(packet);
 	}
 
 	public void writeToBuf(PacketByteBuf buf) {
 		buf.writeCollection(this.tunnels, (buf1, tunnel) -> tunnel.writePacket(buf1));
 	}
+
+	// End serialization
 
 	public void syncAndMarkDirty(ServerWorld world) {
 		this.setDirty(true);
