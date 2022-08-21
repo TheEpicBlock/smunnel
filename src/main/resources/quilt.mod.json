@@ -15,7 +15,8 @@
 				"issues": "https://github.com/TheEpicBlock/smunnel/issues",
 				"sources": "https://github.com/TheEpicBlock/smunnel"
 			},
-			"icon": "assets/smunnel/icon.png"
+			"icon": "assets/smunnel/icon.png",
+			"license": "LGPL-3.0-or-later"
 		},
 		"intermediate_mappings": "net.fabricmc:intermediary",
 		"entrypoints": {
