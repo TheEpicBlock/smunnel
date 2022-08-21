@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.command.CommandException;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
@@ -39,7 +40,7 @@ public class Smunnel implements ModInitializer {
 									Text.literal(
 											"("+tunnel.xMin()+", "+tunnel.yMin()+", "+tunnel.zMin()+")" +
 											" -> " +
-											"("+tunnel.xMax()+", "+tunnel.yMax()+", "+tunnel.zMax()+")" +
+											"("+tunnel.xMax()+", "+tunnel.yMax()+", "+tunnel.zMax()+") " +
 											"axis: " + tunnel.axis().getName() +
 											" length: " + tunnel.targetLength()
 									),
@@ -57,6 +58,9 @@ public class Smunnel implements ModInitializer {
 							.then(argument("direction", StringArgumentType.string())
 							.then(argument("targetLength", FloatArgumentType.floatArg(0))
 							.executes(ctx -> {
+								if (FloatArgumentType.getFloat(ctx, "targetLength") == 0) {
+									throw new CommandException(Text.literal("target length can't be 0"));
+								}
 								var holder = TunnelHolder.getFromPersistentState(ctx.getSource().getWorld());
 								holder.tunnels.add(new Tunnel(
 										IntegerArgumentType.getInteger(ctx, "zmin"),
