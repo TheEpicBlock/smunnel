@@ -28,12 +28,6 @@ public abstract class ChunkShaderExtension implements ChunkShaderDuck {
 		extension = new SpaceCompressionShaderInterface(((GlProgram<?>)par2).handle());
 	}
 
-	@Inject(method = "setRegionOffset", at = @At("RETURN"))
-	private void onRegionSet(float par1, float par2, float par3, CallbackInfo ci) {
-		var duck = (ChunkShaderDuck)this;
-		duck.smunnel$getExtension().init(MainRenderManager.getShaderData());
-	}
-
 	@Override
 	public SpaceCompressionShaderInterface smunnel$getExtension() {
 		return extension;

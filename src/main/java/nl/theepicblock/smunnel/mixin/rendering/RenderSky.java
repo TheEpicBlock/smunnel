@@ -21,22 +21,18 @@ public class RenderSky {
 
 		vertexBuffer.setShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
 
-		if (MainRenderManager.shouldRenderAlt()) {
-			MainRenderManager.swapToAlt();
+		MainRenderManager.executeAlts(() -> {
 			vertexBuffer.setShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
-			MainRenderManager.swapToOriginal();
-		}
+		});
 	}
 
 	@Redirect(method = "renderSky", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/VertexBuffer;setShader(Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/util/math/Matrix4f;Lnet/minecraft/client/render/ShaderProgram;)V"))
 	private void redirectDrawBatch(VertexBuffer instance, Matrix4f viewMatrix, Matrix4f projectionMatrix, ShaderProgram shader) {
 		instance.setShader(viewMatrix, projectionMatrix, shader);
 
-		if (MainRenderManager.shouldRenderAlt()) {
-			MainRenderManager.swapToAlt();
+		MainRenderManager.executeAlts(() -> {
 			instance.setShader(viewMatrix, projectionMatrix, shader);
-			MainRenderManager.swapToOriginal();
-		}
+		});
 	}
 
 	@Redirect(method = "renderEndSky", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/Tessellator;draw()V"))
@@ -46,21 +42,17 @@ public class RenderSky {
 
 		vertexBuffer.setShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
 
-		if (MainRenderManager.shouldRenderAlt()) {
-			MainRenderManager.swapToAlt();
+		MainRenderManager.executeAlts(() -> {
 			vertexBuffer.setShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), RenderSystem.getShader());
-			MainRenderManager.swapToOriginal();
-		}
+		});
 	}
 
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;clear(IZ)V"))
 	private void redirectClear(int i, boolean bl) {
 		RenderSystem.clear(i, bl);
 
-		if (MainRenderManager.shouldRenderAlt()) {
-			MainRenderManager.swapToAlt();
+		MainRenderManager.executeAlts(() -> {
 			RenderSystem.clear(i, bl);
-			MainRenderManager.swapToOriginal();
-		}
+		});
 	}
 }

@@ -32,12 +32,8 @@ public class SpaceCompressionShaderInterface {
 	}
 
 	public void setEnabled(SpaceCompressionData data) {
-		GL20C.glUniform1i(tunnelDataIndex, data.tunnelData());
-	}
-
-	public void init(SpaceCompressionData data) {
 		GL20C.glUniform1f(tunnelStartIndex, data.tunnelStart());
-//		GL20C.glUniform1i(tunnelDataIndex, data.tunnelData()); // Set dynamically to enable / disable shader
+		GL20C.glUniform1i(tunnelDataIndex, data.tunnelData());
 		GL20C.glUniform1f(tunnelMultiplicationFactorIndex, data.tunnelMultiplicationFactor());
 	}
 

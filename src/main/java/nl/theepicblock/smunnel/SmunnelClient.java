@@ -1,13 +1,6 @@
 package nl.theepicblock.smunnel;
 
-import com.google.common.base.Suppliers;
-import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
-import me.jellysquid.mods.sodium.client.gl.shader.GlShader;
-import me.jellysquid.mods.sodium.client.gl.shader.ShaderType;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.util.Identifier;
-import nl.theepicblock.smunnel.rendering.GlUniform2i;
-import nl.theepicblock.smunnel.rendering.GlUniformMcMatrix4f;
 import nl.theepicblock.smunnel.rendering.MainRenderManager;
 import org.apache.commons.io.IOUtils;
 import org.quiltmc.loader.api.ModContainer;
@@ -16,12 +9,12 @@ import org.quiltmc.qsl.networking.api.client.ClientPlayNetworking;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Supplier;
 
 public class SmunnelClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient(ModContainer mod) {
 		WorldRenderEvents.START.register(MainRenderManager::startRender);
+		WorldRenderEvents.AFTER_SETUP.register(MainRenderManager::setupRender);
 		WorldRenderEvents.END.register(MainRenderManager::endRender);
 
 		// Networking

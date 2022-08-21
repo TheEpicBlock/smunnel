@@ -20,6 +20,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static nl.theepicblock.smunnel.Smunnel.IRIS;
+
 @Mixin(value = RegionChunkRenderer.class, remap = false)
 public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 	public SodiumDrawMixin(RenderDevice device, ChunkVertexType vertexType) {
@@ -30,30 +32,19 @@ public abstract class SodiumDrawMixin extends ShaderChunkRenderer {
 	protected abstract void executeDrawBatches(CommandList commandList, GlTessellation tessellation);
 
 	@Redirect(method = "render", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/RegionChunkRenderer;executeDrawBatches(Lme/jellysquid/mods/sodium/client/gl/device/CommandList;Lme/jellysquid/mods/sodium/client/gl/tessellation/GlTessellation;)V"))
-	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation i) {
+	private void redirectDrawBatch(RegionChunkRenderer instance, CommandList batch, GlTessellation tessellation) {
 		var program = (this.activeProgram == null && this instanceof ShaderChunkRendererExt e) ? e.iris$getOverride() : this.activeProgram;
-		var shader = (ChunkShaderDuck)program.getInterface();
+		var shader = ((ChunkShaderDuck)program.getInterface()).smunnel$getExtension();
 
-		var enableMain = MainRenderManager.shouldRenderInMain();
+		MainRenderManager.executeMainWithShader(shader, () -> {
+			executeDrawBatches(batch, tessellation);
+		});
 
-		if (enableMain) shader.smunnel$getExtension().setEnabled(MainRenderManager.getShaderData());
-		executeDrawBatches(batch, i);
-		if (enableMain) shader.smunnel$getExtension().setDisabled();
-
-		if (MainRenderManager.shouldRenderAlt() && !ShadowRenderingState.areShadowsCurrentlyBeingRendered()) {
-			shader.smunnel$getExtension().setEnabled(MainRenderManager.getShaderData());
-			MainRenderManager.swapToAlt();
-			executeDrawBatches(batch, i);
-			shader.smunnel$getExtension().setDisabled();
-			MainRenderManager.swapToOriginal();
-		}
-	}
-
-	@Inject(method = "setModelMatrixUniforms", at = @At("HEAD"))
-	private void onSetUniforms(ChunkShaderInterface shader, RenderRegion region, ChunkCameraContext camera, CallbackInfo ci) {
-		if (shader != null) {
-			var duck = (ChunkShaderDuck)shader;
-			duck.smunnel$getExtension().init(MainRenderManager.getShaderData());
+		// We shouldn't be double-rendering shadows
+		if (!(IRIS && ShadowRenderingState.areShadowsCurrentlyBeingRendered())) {
+			MainRenderManager.executeAltsWithShader(shader, () -> {
+				executeDrawBatches(batch, tessellation);
+			});
 		}
 	}
 }

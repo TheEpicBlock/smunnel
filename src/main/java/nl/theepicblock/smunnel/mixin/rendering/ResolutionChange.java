@@ -18,6 +18,6 @@ public class ResolutionChange {
 
 	@Inject(method = "onResolutionChanged", at = @At("RETURN"))
 	private void onResolutionChanged(CallbackInfo ci) {
-		MainRenderManager.altBuffer.resize(this.window.getFramebufferWidth(), this.window.getFramebufferHeight(), MinecraftClient.IS_SYSTEM_MAC);
+		MainRenderManager.onResolutionChanged(this.window.getFramebufferWidth(), this.window.getFramebufferHeight());
 	}
 }

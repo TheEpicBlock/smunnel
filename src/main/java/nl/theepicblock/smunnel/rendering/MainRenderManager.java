@@ -14,20 +14,19 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Direction;
-import nl.theepicblock.smunnel.SmunnelClient;
+import net.minecraft.util.math.Box;
+import nl.theepicblock.smunnel.ListUtil;
 import nl.theepicblock.smunnel.Tunnel;
 import nl.theepicblock.smunnel.WorldDuck;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.*;
 
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 import static nl.theepicblock.smunnel.SmunnelClient.getShaderSrc;
 
 @Environment(EnvType.CLIENT)
 public class MainRenderManager {
-	public static Framebuffer altBuffer;
 	public static final Supplier<GlProgram<PortalShaderInterface>> PORTAL_SHADER = Suppliers.memoize(() -> new GlProgram.Builder(new Identifier("smunnel", "portal"))
 			.attachShader(new GlShader(ShaderType.VERTEX,   new Identifier("smunnel", "portal_vert"), getShaderSrc("portal.vsh")))
 			.attachShader(new GlShader(ShaderType.FRAGMENT, new Identifier("smunnel", "portal_frag"), getShaderSrc("portal.fsh")))
@@ -38,130 +37,159 @@ public class MainRenderManager {
 					)
 			));
 
-	// Render state
 	private static int currentBuffer; // Stores the currently bound framebuffer
-	private static int originalBuffer; // Temporarily stores a framebuffer whilst it's swapped to altBuffer
-	private static boolean shouldRenderAlt = false;
-	private static boolean shouldRenderInMain = false;
-	private static SpaceCompressionShaderInterface.SpaceCompressionData shaderData = new SpaceCompressionShaderInterface.SpaceCompressionData(0, 0, 0);
+
+	// State
+	private static final ArrayList<Framebuffer> altFramebuffers = new ArrayList<>();
+	private static final ArrayList<Tunnel> activeTunnels = new ArrayList<>();
+	private static final ArrayList<SpaceCompressionShaderInterface.SpaceCompressionData> shaderData = new ArrayList<>();
+	private static SpaceCompressionShaderInterface.SpaceCompressionData mainShaderData = null; // shader data for the main shader (if any)
 
 	public static void startRender(WorldRenderContext ctx) {
-		var t = getCurrentTunnel();
-		if (t != null) {
-			var pos = ctx.camera().getPos();
-			var c = pos.getComponentAlongAxis(t.axis());
-			shouldRenderAlt = c < t.getMin() || c > t.getMax();
-			shouldRenderInMain = t.isInTunnel(pos);
-			shaderData = SpaceCompressionShaderInterface.getBasedOnTunnel(t, pos);
-		} else {
-			shouldRenderAlt = false;
-			shouldRenderInMain = false;
-		}
-
-		if (shouldRenderAlt()) {
-			swapToAlt();
-			altBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
-			swapToOriginal();
+		for (var buffer : altFramebuffers) {
+			executeWithBuffer(buffer, () -> buffer.clear(MinecraftClient.IS_SYSTEM_MAC));
 		}
 	}
 
-	static {
+	public static void setupRender(WorldRenderContext ctx) {
+		var holder = WorldDuck.get(ctx.world());
+		var cameraPos = ctx.camera().getPos();
+
+		shaderData.clear();
+		activeTunnels.clear();
+		mainShaderData = null;
+
+		for (var tunnel : holder.tunnels) {
+			var c = cameraPos.getComponentAlongAxis(tunnel.axis());
+			var frustrum = ctx.frustum();
+
+			if (tunnel.isInTunnel(cameraPos)) {
+				mainShaderData = SpaceCompressionShaderInterface.getBasedOnTunnel(tunnel, cameraPos);
+				continue;
+			}
+
+			var shouldRender = c < tunnel.getMin() || c > tunnel.getMax();
+			if (frustrum != null) {
+				shouldRender &= frustrum.isVisible(new Box(tunnel.xMin(), tunnel.yMin(), tunnel.zMin(), tunnel.xMax(), tunnel.yMax(), tunnel.zMax()));
+			}
+
+			if (shouldRender) {
+				shaderData.add(SpaceCompressionShaderInterface.getBasedOnTunnel(tunnel, cameraPos));
+				activeTunnels.add(tunnel);
+			}
+		}
+
+		ListUtil.setSize(
+				altFramebuffers,
+				shaderData.size(),
+				buffer -> executeWithBuffer(buffer, buffer::delete),
+				MainRenderManager::newAltbuffer
+		);
+	}
+
+	private static Framebuffer newAltbuffer() {
+		var originalBuffer = currentBuffer;
+
 		var w = MinecraftClient.getInstance().getWindow();
-		altBuffer = new SimpleFramebuffer(w.getFramebufferWidth(), w.getFramebufferHeight(), true, MinecraftClient.IS_SYSTEM_MAC);
+		var altBuffer = new SimpleFramebuffer(w.getFramebufferWidth(), w.getFramebufferHeight(), true, MinecraftClient.IS_SYSTEM_MAC);
 		altBuffer.setClearColor(0,0,0,0);
+
+		restoreFramebuffer(originalBuffer); // Just in case
+		return altBuffer;
+	}
+
+	private static void restoreFramebuffer(int b) {
+		GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, b);
 	}
 
 	public static void endRender(WorldRenderContext ctx) {
-//		i++;
-//		if (i % 45 == 0) {
-//			try (var img = ScreenshotRecorder.takeScreenshot(altBuffer)) {
-//				var f = new File("/tmp/stream.png");
-//				img.writeFile(f);
-//			} catch (IOException ignored) {
-//
-//			}
-//		}
-
 		// Render portals
-		if (shouldRenderAlt()) {
-			RenderSystem.disableBlend();
+		if (activeTunnels.isEmpty()) return;
 
-			var shaderProgram = PORTAL_SHADER.get();
-			shaderProgram.bind();
-			var interf = shaderProgram.getInterface();
-			interf.projMat().set(RenderSystem.getProjectionMatrix());
-			interf.modelViewMat().set(ctx.matrixStack().peek().getPosition());
-			var w = MinecraftClient.getInstance().getWindow();
-			interf.windowSize().set(w.getFramebufferWidth(), w.getFramebufferHeight());
 
-			var tex = MainRenderManager.altBuffer.getColorAttachment();
+		var w = MinecraftClient.getInstance().getWindow();
+		var x = ctx.camera().getPos().x;
+		var y = ctx.camera().getPos().y;
+		var z = ctx.camera().getPos().z;
+
+		RenderSystem.disableBlend();
+		GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
+
+		var shaderProgram = PORTAL_SHADER.get();
+		shaderProgram.bind();
+		var shaderInterface = shaderProgram.getInterface();
+		shaderInterface.projMat().set(RenderSystem.getProjectionMatrix());
+		shaderInterface.modelViewMat().set(ctx.matrixStack().peek().getPosition());
+		shaderInterface.windowSize().set(w.getFramebufferWidth(), w.getFramebufferHeight());
+
+		for (var i = 0; i < activeTunnels.size(); i++) {
+			var t = activeTunnels.get(i);
+			var framebuffer = altFramebuffers.get(i);
+
+			var tex = framebuffer.getColorAttachment();
 
 			GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
 			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
+			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z).next();
+			BufferRenderer.draw(bufferBuilder.end());
 
-			var x = ctx.camera().getPos().x;
-			var y = ctx.camera().getPos().y;
-			var z = ctx.camera().getPos().z;
-
-			GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
-			var t = getCurrentTunnel();
-			if (t != null) {
-				BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
-				bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-				bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z).next();
-				bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z).next();
-				bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z).next();
-				bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z).next();
-				BufferRenderer.draw(bufferBuilder.end());
-
-				bufferBuilder = Tessellator.getInstance().getBufferBuilder();
-				bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-				bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z).next();
-				bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z).next();
-				bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z).next();
-				bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z).next();
-				BufferRenderer.draw(bufferBuilder.end());
-			}
-			GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
+			bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z).next();
+			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z).next();
+			BufferRenderer.draw(bufferBuilder.end());
 		}
+		GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
 	}
 
-	public static void swapToAlt() {
-		RenderSystem.assertOnRenderThreadOrInit();
-		assert originalBuffer == -2;
-		originalBuffer = currentBuffer;
-		altBuffer.beginWrite(false);
+	public static void onResolutionChanged(int width, int height) {
+		altFramebuffers.forEach(buffer -> buffer.resize(width, height, MinecraftClient.IS_SYSTEM_MAC));
 	}
 
-	public static void swapToOriginal() {
+	public static void executeWithBuffer(Framebuffer buffer, Runnable r) {
 		RenderSystem.assertOnRenderThreadOrInit();
-		assert originalBuffer != -2;
-		GlStateManager._glBindFramebuffer(GL30.GL_FRAMEBUFFER, originalBuffer); // Restore state
-		originalBuffer = -2;
+		var originalBuffer = currentBuffer;
+		buffer.beginWrite(false);
+		r.run();
+		restoreFramebuffer(originalBuffer);
+	}
+
+	public static void executeAlts(Runnable r) {
+		var originalBuffer = currentBuffer;
+		for (var buffer : altFramebuffers) {
+			buffer.beginWrite(false);
+			r.run();
+		}
+		restoreFramebuffer(originalBuffer);
+	}
+
+	public static void executeAltsWithShader(SpaceCompressionShaderInterface shaderInterface, Runnable r) {
+		var originalBuffer = currentBuffer;
+		for (var i = 0; i < shaderData.size(); i++) {
+			shaderInterface.setEnabled(shaderData.get(i));
+			altFramebuffers.get(i).beginWrite(false);
+			r.run();
+		}
+		shaderInterface.setDisabled();
+		restoreFramebuffer(originalBuffer);
+	}
+
+	public static void executeMainWithShader(SpaceCompressionShaderInterface shaderInterface, Runnable r) {
+		var enable = mainShaderData != null;
+		if (enable) shaderInterface.setEnabled(mainShaderData);
+		r.run();
+		if (enable) shaderInterface.setDisabled();
 	}
 
 	public static void setCurrentBuffer(int v) {
 		currentBuffer = v;
-	}
-
-	public static boolean shouldRenderAlt() {
-		return shouldRenderAlt;
-	}
-
-	public static boolean shouldRenderInMain() {
-		return shouldRenderInMain;
-	}
-
-	public static SpaceCompressionShaderInterface.SpaceCompressionData getShaderData() {
-		return shaderData;
-	}
-
-	@Nullable
-	public static Tunnel getCurrentTunnel() {
-		if (MinecraftClient.getInstance().world == null) return null;
-		var holder = ((WorldDuck)MinecraftClient.getInstance().world).smunnel$getTunnels();
-		if (holder.tunnels.isEmpty()) return null;
-		return holder.tunnels.get(0);
 	}
 
 	public record PortalShaderInterface(GlUniformMcMatrix4f modelViewMat, GlUniformMcMatrix4f projMat, GlUniform2i windowSize) {}

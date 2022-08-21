@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import org.quiltmc.loader.api.ModContainer;
+import org.quiltmc.loader.api.QuiltLoader;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.command.api.CommandRegistrationCallback;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import static net.minecraft.server.command.CommandManager.literal;
 public class Smunnel implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("smunnel");
 	public static final Identifier SYNC_PACKET = new Identifier("smunnel", "sync_smunnels");
+	public static final boolean IRIS = QuiltLoader.isModLoaded("iris");
 
 	@Override
 	public void onInitialize(ModContainer mod) {
