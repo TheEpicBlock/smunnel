@@ -65,7 +65,7 @@ public class SpaceCompressionShaderInterface {
 		return new SpaceCompressionData(
 				tunnelStart,
 				(boundMode << 30) | (axis << 28) | (tunnelLength + 134217727),
-				Math.abs((float)t.targetLength() / tunnelLength)
+				Math.abs(t.targetLength() / tunnelLength)
 		);
 	}
 

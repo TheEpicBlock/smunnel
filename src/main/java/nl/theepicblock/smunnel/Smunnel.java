@@ -31,6 +31,7 @@ public class Smunnel implements ModInitializer {
 		// Commands
 		CommandRegistrationCallback.EVENT.register((dispatcher, buildContext, environment) -> {
 			dispatcher.register(literal("smunnel")
+					.requires(r -> r.hasPermissionLevel(2))
 					.then(literal("list").executes(context -> {
 						var holder = TunnelHolder.getFromPersistentState(context.getSource().getWorld());
 						for (var tunnel : holder.tunnels) {
@@ -59,12 +60,12 @@ public class Smunnel implements ModInitializer {
 								var a = BlockPosArgumentType.getBlockPos(ctx, "from");
 								var b = BlockPosArgumentType.getBlockPos(ctx, "to");
 								holder.tunnels.add(new Tunnel(
-										Math.min(a.getZ(), b.getZ()),
-										Math.max(a.getZ(), b.getZ())+1,
-										Math.min(a.getY(), b.getY()),
-										Math.max(a.getY(), b.getY())+1,
 										Math.min(a.getX(), b.getX()),
 										Math.max(a.getX(), b.getX())+1,
+										Math.min(a.getY(), b.getY()),
+										Math.max(a.getY(), b.getY())+1,
+										Math.min(a.getZ(), b.getZ()),
+										Math.max(a.getZ(), b.getZ())+1,
 										Direction.Axis.fromName(StringArgumentType.getString(ctx, "direction")),
 										FloatArgumentType.getFloat(ctx, "targetLength")
 								));
@@ -78,7 +79,53 @@ public class Smunnel implements ModInitializer {
 								holder.tunnels.remove(IntegerArgumentType.getInteger(ctx, "index"));
 								holder.syncAndMarkDirty(ctx.getSource().getWorld());
 								return Command.SINGLE_SUCCESS;
-							}))));
+							})))
+					.then(literal("setlength")
+							.then(argument("index", IntegerArgumentType.integer())
+							.then(argument("targetLength", FloatArgumentType.floatArg(0))
+							.executes(ctx -> {
+								if (FloatArgumentType.getFloat(ctx, "targetLength") == 0) {
+									throw new CommandException(Text.literal("target length can't be 0"));
+								}
+								var holder = TunnelHolder.getFromPersistentState(ctx.getSource().getWorld());
+								var index = IntegerArgumentType.getInteger(ctx, "index");
+								var old = holder.tunnels.get(index);
+								holder.tunnels.set(index, new Tunnel(
+										old.xMin(),
+										old.xMax(),
+										old.yMin(),
+										old.yMax(),
+										old.zMin(),
+										old.zMax(),
+										old.axis(),
+										FloatArgumentType.getFloat(ctx, "targetLength")
+								));
+								holder.syncAndMarkDirty(ctx.getSource().getWorld());
+								return Command.SINGLE_SUCCESS;
+							}))))
+					.then(literal("addlength")
+							.then(argument("index", IntegerArgumentType.integer())
+									.then(argument("addition", FloatArgumentType.floatArg())
+											.executes(ctx -> {
+												var holder = TunnelHolder.getFromPersistentState(ctx.getSource().getWorld());
+												var index = IntegerArgumentType.getInteger(ctx, "index");
+												var old = holder.tunnels.get(index);
+												if (FloatArgumentType.getFloat(ctx, "addition") + old.targetLength() == 0) {
+													throw new CommandException(Text.literal("target length can't be 0"));
+												}
+												holder.tunnels.set(index, new Tunnel(
+														old.xMin(),
+														old.xMax(),
+														old.yMin(),
+														old.yMax(),
+														old.zMin(),
+														old.zMax(),
+														old.axis(),
+														FloatArgumentType.getFloat(ctx, "addition") + old.targetLength()
+												));
+												holder.syncAndMarkDirty(ctx.getSource().getWorld());
+												return Command.SINGLE_SUCCESS;
+											})))));
 		});
 	}
 }

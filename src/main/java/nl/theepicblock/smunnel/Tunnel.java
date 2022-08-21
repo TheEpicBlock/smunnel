@@ -12,12 +12,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public record Tunnel(
-		int zMin,
-		int zMax,
-		int yMin,
-		int yMax,
 		int xMin,
 		int xMax,
+		int yMin,
+		int yMax,
+		int zMin,
+		int zMax,
 		Direction.Axis axis,
 		float targetLength
 ) {
@@ -213,12 +213,12 @@ public record Tunnel(
 	}
 
 	public void writePacket(PacketByteBuf buf) {
-		buf.writeVarInt(this.zMin());
-		buf.writeVarInt(this.zMax());
-		buf.writeVarInt(this.yMin());
-		buf.writeVarInt(this.yMax());
 		buf.writeVarInt(this.xMin());
 		buf.writeVarInt(this.xMax());
+		buf.writeVarInt(this.yMin());
+		buf.writeVarInt(this.yMax());
+		buf.writeVarInt(this.zMin());
+		buf.writeVarInt(this.zMax());
 		buf.writeEnumConstant(this.axis());
 		buf.writeFloat(this.targetLength());
 	}

@@ -35,12 +35,12 @@ public class TunnelHolder extends PersistentState {
 		for (var element : list) {
 			var compound = (NbtCompound)element;
 			holder.tunnels.add(new Tunnel(
-					compound.getInt("zMin"),
-					compound.getInt("zMax"),
-					compound.getInt("yMin"),
-					compound.getInt("yMax"),
 					compound.getInt("xMin"),
 					compound.getInt("xMax"),
+					compound.getInt("yMin"),
+					compound.getInt("yMax"),
+					compound.getInt("zMin"),
+					compound.getInt("zMax"),
 					Direction.Axis.fromName(compound.getString("axis")),
 					compound.getFloat("targetLength")
 			));
