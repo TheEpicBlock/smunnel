@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
@@ -118,6 +119,24 @@ public record Tunnel(
 		} else {
 			return ray;
 		}
+	}
+
+	public Box getBoxForCulling(Vec3d cameraPos) {
+		var c = cameraPos.getComponentAlongAxis(this.axis());
+		var b = c > this.getMax();
+
+		var minVec = new Vec3d(xMin(), yMin(), zMin());
+		var maxVec = new Vec3d(xMax(), yMax(), zMax());
+
+		if (b) {
+			minVec = minVec.withAxis(this.axis(), this.getMax());
+			maxVec = maxVec.withAxis(this.axis(), this.getMax());
+		} else {
+			minVec = minVec.withAxis(this.axis(), this.getMin());
+			maxVec = maxVec.withAxis(this.axis(), this.getMin());
+		}
+
+		return new Box(minVec, maxVec);
 	}
 
 	@Environment(EnvType.CLIENT)

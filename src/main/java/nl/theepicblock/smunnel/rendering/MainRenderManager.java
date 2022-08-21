@@ -5,7 +5,6 @@ import com.mojang.blaze3d.framebuffer.Framebuffer;
 import com.mojang.blaze3d.framebuffer.SimpleFramebuffer;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.gl.shader.GlShader;
 import me.jellysquid.mods.sodium.client.gl.shader.ShaderType;
@@ -14,7 +13,6 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Box;
 import nl.theepicblock.smunnel.ListUtil;
 import nl.theepicblock.smunnel.Tunnel;
 import nl.theepicblock.smunnel.WorldDuck;
@@ -70,7 +68,7 @@ public class MainRenderManager {
 
 			var shouldRender = c < tunnel.getMin() || c > tunnel.getMax();
 			if (frustrum != null) {
-				shouldRender &= frustrum.isVisible(new Box(tunnel.xMin(), tunnel.yMin(), tunnel.zMin(), tunnel.xMax(), tunnel.yMax(), tunnel.zMax()));
+				shouldRender &= frustrum.isVisible(tunnel.getBoxForCulling(cameraPos));
 			}
 
 			if (shouldRender) {
