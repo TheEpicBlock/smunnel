@@ -106,11 +106,7 @@ public class MainRenderManager {
 		// Render portals
 		if (activeTunnels.isEmpty()) return;
 
-
 		var w = MinecraftClient.getInstance().getWindow();
-		var x = ctx.camera().getPos().x;
-		var y = ctx.camera().getPos().y;
-		var z = ctx.camera().getPos().z;
 
 		RenderSystem.disableBlend();
 		GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
@@ -130,21 +126,7 @@ public class MainRenderManager {
 
 			GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
 			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
-			BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
-			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMax() - z).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMax() - z).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMax() - z).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMax() - z).next();
-			BufferRenderer.draw(bufferBuilder.end());
-
-			bufferBuilder = Tessellator.getInstance().getBufferBuilder();
-			bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
-			bufferBuilder.vertex(t.xMax() - x, t.yMin() - y, t.zMin() - z).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMin() - y, t.zMin() - z).next();
-			bufferBuilder.vertex(t.xMin() - x, t.yMax() - y, t.zMin() - z).next();
-			bufferBuilder.vertex(t.xMax() - x, t.yMax() - y, t.zMin() - z).next();
-			BufferRenderer.draw(bufferBuilder.end());
+			t.render(ctx.camera().getPos());
 		}
 		GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
 	}

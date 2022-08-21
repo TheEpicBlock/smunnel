@@ -1,5 +1,8 @@
 package nl.theepicblock.smunnel;
 
+import com.mojang.blaze3d.vertex.*;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -115,6 +118,66 @@ public record Tunnel(
 		} else {
 			return ray;
 		}
+	}
+
+	@Environment(EnvType.CLIENT)
+	public void render(Vec3d cameraPos) {
+		var c = cameraPos.getComponentAlongAxis(this.axis());
+		var b = c > this.getMax();
+
+		var xS = this.xMin() - cameraPos.x;
+		var yS = this.yMin() - cameraPos.y;
+		var zS = this.zMin() - cameraPos.z;
+		var xM = this.xMax() - cameraPos.x;
+		var yM = this.yMax() - cameraPos.y;
+		var zM = this.zMax() - cameraPos.z;
+
+		BufferBuilder bufferBuilder = Tessellator.getInstance().getBufferBuilder();
+		bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+
+		switch (this.axis()) {
+			case X -> {
+				if (b) {
+					bufferBuilder.vertex(xM, yS, zS).next();
+					bufferBuilder.vertex(xM, yM, zS).next();
+					bufferBuilder.vertex(xM, yM, zM).next();
+					bufferBuilder.vertex(xM, yS, zM).next();
+				} else {
+					bufferBuilder.vertex(xS, yS, zS).next();
+					bufferBuilder.vertex(xS, yS, zM).next();
+					bufferBuilder.vertex(xS, yM, zM).next();
+					bufferBuilder.vertex(xS, yM, zS).next();
+				}
+			}
+			case Y -> {
+				if (b) {
+					bufferBuilder.vertex(xS, yM, zS).next();
+					bufferBuilder.vertex(xS, yM, zM).next();
+					bufferBuilder.vertex(xM, yM, zM).next();
+					bufferBuilder.vertex(xM, yM, zS).next();
+				} else {
+					bufferBuilder.vertex(xS, yS, zS).next();
+					bufferBuilder.vertex(xM, yS, zS).next();
+					bufferBuilder.vertex(xM, yS, zM).next();
+					bufferBuilder.vertex(xS, yS, zM).next();
+				}
+			}
+			case Z -> {
+				if (b) {
+					bufferBuilder.vertex(xS, yS, zM).next();
+					bufferBuilder.vertex(xM, yS, zM).next();
+					bufferBuilder.vertex(xM, yM, zM).next();
+					bufferBuilder.vertex(xS, yM, zM).next();
+				} else {
+					bufferBuilder.vertex(xM, yS, zS).next();
+					bufferBuilder.vertex(xS, yS, zS).next();
+					bufferBuilder.vertex(xS, yM, zS).next();
+					bufferBuilder.vertex(xM, yM, zS).next();
+				}
+			}
+		}
+
+		BufferRenderer.draw(bufferBuilder.end());
 	}
 
 	public static Tunnel fromPacket(PacketByteBuf buf) {
