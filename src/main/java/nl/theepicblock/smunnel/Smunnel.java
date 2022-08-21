@@ -5,6 +5,8 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.CoordinateArgument;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
@@ -45,12 +47,8 @@ public class Smunnel implements ModInitializer {
 						return Command.SINGLE_SUCCESS;
 					}))
 					.then(literal("add")
-							.then(argument("xmin", IntegerArgumentType.integer())
-							.then(argument("ymin", IntegerArgumentType.integer())
-							.then(argument("zmin", IntegerArgumentType.integer())
-							.then(argument("xmax", IntegerArgumentType.integer())
-							.then(argument("ymax", IntegerArgumentType.integer())
-							.then(argument("zmax", IntegerArgumentType.integer())
+							.then(argument("from", BlockPosArgumentType.blockPos())
+							.then(argument("to", BlockPosArgumentType.blockPos())
 							.then(argument("direction", StringArgumentType.string())
 							.then(argument("targetLength", FloatArgumentType.floatArg(0))
 							.executes(ctx -> {
@@ -58,19 +56,21 @@ public class Smunnel implements ModInitializer {
 									throw new CommandException(Text.literal("target length can't be 0"));
 								}
 								var holder = TunnelHolder.getFromPersistentState(ctx.getSource().getWorld());
+								var a = BlockPosArgumentType.getBlockPos(ctx, "from");
+								var b = BlockPosArgumentType.getBlockPos(ctx, "to");
 								holder.tunnels.add(new Tunnel(
-										IntegerArgumentType.getInteger(ctx, "zmin"),
-										IntegerArgumentType.getInteger(ctx, "zmax"),
-										IntegerArgumentType.getInteger(ctx, "ymin"),
-										IntegerArgumentType.getInteger(ctx, "ymax"),
-										IntegerArgumentType.getInteger(ctx, "xmin"),
-										IntegerArgumentType.getInteger(ctx, "xmax"),
+										Math.min(a.getZ(), b.getZ()),
+										Math.max(a.getZ(), b.getZ())+1,
+										Math.min(a.getY(), b.getY()),
+										Math.max(a.getY(), b.getY())+1,
+										Math.min(a.getX(), b.getX()),
+										Math.max(a.getX(), b.getX())+1,
 										Direction.Axis.fromName(StringArgumentType.getString(ctx, "direction")),
 										FloatArgumentType.getFloat(ctx, "targetLength")
 								));
 								holder.syncAndMarkDirty(ctx.getSource().getWorld());
 								return Command.SINGLE_SUCCESS;
-							}))))))))))
+							}))))))
 					.then(literal("remove")
 							.then(argument("index", IntegerArgumentType.integer())
 							.executes(ctx -> {
