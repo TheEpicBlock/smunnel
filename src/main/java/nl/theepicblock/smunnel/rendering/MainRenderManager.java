@@ -16,7 +16,10 @@ import net.minecraft.util.Identifier;
 import nl.theepicblock.smunnel.ListUtil;
 import nl.theepicblock.smunnel.Tunnel;
 import nl.theepicblock.smunnel.WorldDuck;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL32C;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
@@ -107,7 +110,10 @@ public class MainRenderManager {
 		var w = MinecraftClient.getInstance().getWindow();
 
 		RenderSystem.disableBlend();
+		// TODO do this properly
+		RenderSystem.enableDepthTest();
 		GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
+		GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
 
 		var shaderProgram = PORTAL_SHADER.get();
 		shaderProgram.bind();
@@ -122,10 +128,10 @@ public class MainRenderManager {
 
 			var tex = framebuffer.getColorAttachment();
 
-			GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
 			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
 			t.render(ctx.camera().getPos());
 		}
+		RenderSystem.disableDepthTest();
 		GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
 	}
 
