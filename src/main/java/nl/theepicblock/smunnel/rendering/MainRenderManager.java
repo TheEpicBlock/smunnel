@@ -109,8 +109,13 @@ public class MainRenderManager {
 
 		var w = MinecraftClient.getInstance().getWindow();
 
-		RenderSystem.disableBlend();
+		var depth = GL20C.glGetInteger(GL20C.GL_DEPTH_TEST);
+		var blend = GL20C.glGetInteger(GL20C.GL_BLEND);
+		var activeTexture = GL20C.glGetInteger(GL20C.GL_ACTIVE_TEXTURE);
+		var textureBinding = GL20C.glGetInteger(GL20C.GL_TEXTURE_BINDING_2D);
+
 		// TODO do this properly
+		RenderSystem.disableBlend();
 		RenderSystem.enableDepthTest();
 		GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
 		GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
@@ -131,8 +136,21 @@ public class MainRenderManager {
 			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
 			t.render(ctx.camera().getPos());
 		}
-		RenderSystem.disableDepthTest();
 		GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
+
+		if (depth != 0) {
+			RenderSystem.enableDepthTest();
+		} else {
+			RenderSystem.disableDepthTest();
+		}
+		if (blend != 0) {
+			RenderSystem.enableBlend();
+		} else {
+			RenderSystem.disableBlend();
+		}
+
+		GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, textureBinding);
+		GL20C.glActiveTexture(activeTexture);
 	}
 
 	public static void onResolutionChanged(int width, int height) {

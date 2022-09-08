@@ -15,7 +15,7 @@ public class SmunnelClient implements ClientModInitializer {
 	public void onInitializeClient(ModContainer mod) {
 		WorldRenderEvents.START.register(MainRenderManager::startRender);
 		WorldRenderEvents.AFTER_SETUP.register(MainRenderManager::setupRender);
-		WorldRenderEvents.AFTER_ENTITIES.register(MainRenderManager::endRender);
+		WorldRenderEvents.LAST.register(MainRenderManager::endRender);
 
 		// Networking
 		ClientPlayNetworking.registerGlobalReceiver(Smunnel.SYNC_PACKET, (client, handler, buf, responseSender) -> {
