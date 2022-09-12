@@ -111,14 +111,13 @@ public class MainRenderManager {
 
 		var depth = GL20C.glGetInteger(GL20C.GL_DEPTH_TEST);
 		var blend = GL20C.glGetInteger(GL20C.GL_BLEND);
-		var activeTexture = GL20C.glGetInteger(GL20C.GL_ACTIVE_TEXTURE);
-		var textureBinding = GL20C.glGetInteger(GL20C.GL_TEXTURE_BINDING_2D);
 
-		// TODO do this properly
+		var activeTexture = GlStateManager._getActiveTexture();
+		GlStateManager._activeTexture(GL20C.GL_TEXTURE0);
+
 		RenderSystem.disableBlend();
 		RenderSystem.enableDepthTest();
 		GL11.glEnable(GL32C.GL_DEPTH_CLAMP);
-		GL20C.glActiveTexture(GL20C.GL_TEXTURE0);
 
 		var shaderProgram = PORTAL_SHADER.get();
 		shaderProgram.bind();
@@ -131,9 +130,8 @@ public class MainRenderManager {
 			var t = activeTunnels.get(i);
 			var framebuffer = altFramebuffers.get(i);
 
-			var tex = framebuffer.getColorAttachment();
-
-			GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, tex);
+			// TODO do this properly
+			framebuffer.bindColorAttachmentAsTexture();
 			t.render(ctx.camera().getPos());
 		}
 		GL11.glDisable(GL32C.GL_DEPTH_CLAMP);
@@ -149,8 +147,7 @@ public class MainRenderManager {
 			RenderSystem.disableBlend();
 		}
 
-		GL20C.glBindTexture(GL20C.GL_TEXTURE_2D, textureBinding);
-		GL20C.glActiveTexture(activeTexture);
+		GlStateManager._activeTexture(activeTexture);
 	}
 
 	public static void onResolutionChanged(int width, int height) {
